@@ -15,3 +15,34 @@ const db = mysql.createConnection({
 console.log('connected to the employee_tracker database')
 );
 
+// Prompt user to choose an option
+function promptUser(){
+    inquirer.prompt({
+        type: 'list',
+        name: 'task',
+        message: 'What would you like to do?',
+        choices: [
+            'View All Departments',
+            'View All Roles',
+            'View All Employees',
+            'Add Department',
+            'Add Employee',
+            'Add Role',
+            'Update Employee Role',
+            'Quit',
+            ]
+    })
+    //.then(function ({ task }) {
+         // Switch case depending on user option
+//         switch (task) {
+//             case 'View All Departments':
+//                 viewDepts();
+//                 break;
+//             case 'View All Roles':
+//                 viewRoles();
+//                 break;
+//         }
+//     }
+
+// };
+ promptUser();
