@@ -1,22 +1,19 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const consoleTable = require('console.table')
-require('dotenv').config();
+const db = require('./db/connection');
 
 const PORT = process.env.PORT || 3001;
 
-// creates connection to sql database
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: process.env.DB_USER,
-    password: process.env.DB_PW,
-    database: process.env.DB_NAME
-},
-console.log('connected to the employee_tracker database')
-);
+// start sever after DB connection
+db.connect(function (err) {
+    if (err) throw err;
+    // run the start function after the connection is made to prompt the user
+    promptUser();
+  });
 
 // Prompt user to choose an option
-function promptUser(){
+function promptUser() {
     inquirer.prompt({
         type: 'list',
         name: 'task',
@@ -30,19 +27,40 @@ function promptUser(){
             'Add Role',
             'Update Employee Role',
             'Quit',
-            ]
+        ]
     })
-    //.then(function ({ task }) {
-         // Switch case depending on user option
-//         switch (task) {
-//             case 'View All Departments':
-//                 viewDepts();
-//                 break;
-//             case 'View All Roles':
-//                 viewRoles();
-//                 break;
-//         }
-//     }
+        .then(function ({ task }) {
+            //Switch case depending on user option
+            switch (task) {
+                case 'View All Departments':
+                    viewDepts();
+                    break;
+                case 'View All Roles':
+                    viewRoles();
+                    break;
+                case 'View All Employees':
+                    viewEmployees();
+                    break;
+                case 'Add Department':
+                    addDept();
+                    break;
+                case 'Add Employee':
+                    addEmployee();
+                    break;
+                case 'Add Role':
+                    addRole();
+                    break;
+                case 'Update Employee Role':
+                    updateEmpRole();
+                    break;
+                case "Quit":
+                    db.end();
+                    break;
+            }
+        });
+}
 
-// };
- promptUser();
+function viewDepts() {
+    console.log("Viewing departments\n");
+}
+
