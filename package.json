@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/RPB543/employee-tracker-rpb#readme",
   "dependencies": {
+    "console-table-printer": "^2.10.0",
     "console.table": "^0.10.0",
     "dotenv": "^10.0.0",
     "inquirer": "^8.2.0",

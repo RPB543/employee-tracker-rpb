@@ -1,14 +1,15 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
-const consoleTable = require('console.table')
+const consoleTable = require('console.table');
 const db = require('./db/connection');
+const { printTable } = require('console-table-printer');
 
 // start sever after DB connection
 db.connect(function (err) {
     if (err) throw err;
     // run the start function after the connection is made to prompt the user
     promptUser();
-  });
+});
 
 // Prompt user to choose an option
 function promptUser() {
@@ -57,43 +58,90 @@ function promptUser() {
             }
         });
 }
-// shows id and dpet name
+// shows id and dept name
 function viewDepts() {
     console.log("Viewing departments\n");
-    const sql = `SELECT * FROM departments`
+    const sql = `SELECT * FROM department`
 
-    db.query(sql, (err, rows) => {
-        if (err) {
-          res.status(500).json({ error: err.message });
-          return;
-        }
-        consoleTable(res)
+    db.query(sql, (err, res) => {
+        if (err) throw err;
+
+        printTable(res)
         promptUser();
-      });
+    });
 }
 
 // shows role id, title, dept, salary
 function viewRoles() {
     console.log("Viewing roles\n");
+    const sql = `SELECT * FROM role`
+
+    db.query(sql, (err, res) => {
+        if (err) throw err;
+
+        printTable(res)
+        promptUser();
+    });
 }
 
 // shows id, first, last, title, dept, salary, manager/null
 function viewEmployees() {
     console.log("Viewing employees\n");
+    const sql = `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name, CONCAT(manager.first_name, " ", manager.last_name) AS manager, role.title, role.salary, department.department_name AS department FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id LEFT JOIN employee manager on manager.id=employee.manager_id`
+
+    db.query(sql, (err, res) => {
+        if (err) throw err;
+
+        printTable(res)
+        promptUser();
+    });
 }
 
 function addDept() {
     console.log("Adding department\n");
+    inquirer.prompt({
+        type: 'input',
+        name: 'dept_name',
+        message: 'What is the name of the department?',
+    }).then(answer => {
+        const dbobject = { department_name: answer.dept_name }
+        const sql = `INSERT INTO department SET ?`
+        db.query(sql, dbobject, (err, res) => {
+            if (err) throw err;
+
+            viewDepts();
+        });
+    })
 }
 
 function addRole() {
     console.log("Adding role\n");
-}
+    db.promise().query('SELECT * FROM department').then(([rows]) => {
+        let departments = rows;
+        const deptChoices = departments.map(({ id, department_name }) => ({
+            name: department_name,
+            value: id
+        })
+    );
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'role_title',
+                message: 'What is the name of the role?',
+            },
+            {
+                type: 'list',
+                name: 'dept_choices',
+                message: 'What department is this role located in?',
+                choices: deptChoices
+            },
+        ]).then(answers => console.log(answers))
+    })}
 
 function addEmployee() {
-    console.log("Adding employee\n");
-}
+            console.log("Adding employee\n");
+        }
 
 function updateEmpRole() {
-    console.log("Updating employee role\n");
-}
+            console.log("Updating employee role\n");
+        }
