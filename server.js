@@ -64,3 +64,22 @@ function viewDepts() {
     console.log("Viewing departments\n");
 }
 
+function viewRoles() {
+    console.log("Viewing roles\n");
+}
+
+function viewEmployees() {
+    console.log("Viewing employees\n");
+}
+
+function addDept() {
+    console.log("Adding department\n");
+}
+
+function addRole() {
+    console.log("Adding role\n");
+}
+
+function addEmployee() {
+    console.log("Adding employee\n");
+}
