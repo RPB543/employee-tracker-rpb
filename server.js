@@ -3,8 +3,6 @@ const inquirer = require('inquirer');
 const consoleTable = require('console.table')
 const db = require('./db/connection');
 
-const PORT = process.env.PORT || 3001;
-
 // start sever after DB connection
 db.connect(function (err) {
     if (err) throw err;
@@ -59,15 +57,27 @@ function promptUser() {
             }
         });
 }
-
+// shows id and dpet name
 function viewDepts() {
     console.log("Viewing departments\n");
+    const sql = `SELECT * FROM departments`
+
+    db.query(sql, (err, rows) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+        consoleTable(res)
+        promptUser();
+      });
 }
 
+// shows role id, title, dept, salary
 function viewRoles() {
     console.log("Viewing roles\n");
 }
 
+// shows id, first, last, title, dept, salary, manager/null
 function viewEmployees() {
     console.log("Viewing employees\n");
 }
@@ -82,4 +92,8 @@ function addRole() {
 
 function addEmployee() {
     console.log("Adding employee\n");
+}
+
+function updateEmpRole() {
+    console.log("Updating employee role\n");
 }
