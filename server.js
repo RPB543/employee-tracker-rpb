@@ -43,11 +43,11 @@ function promptUser() {
                 case 'Add Department':
                     addDept();
                     break;
-                case 'Add Employee':
-                    addEmployee();
-                    break;
                 case 'Add Role':
                     addRole();
+                    break;
+                case 'Add Employee':
+                    addEmployee();
                     break;
                 case 'Update Employee Role':
                     updateEmpRole();
@@ -60,8 +60,7 @@ function promptUser() {
 }
 // shows id and dept name
 function viewDepts() {
-    console.log("Viewing departments\n");
-    const sql = `SELECT * FROM department`
+    const sql = `SELECT id, department_name AS name FROM department`
 
     db.query(sql, (err, res) => {
         if (err) throw err;
@@ -73,8 +72,7 @@ function viewDepts() {
 
 // shows role id, title, dept, salary
 function viewRoles() {
-    console.log("Viewing roles\n");
-    const sql = `SELECT * FROM role`
+    const sql = `SELECT role.id, role.title, department.department_name AS department, role.salary FROM role LEFT JOIN department on role.department_id=department.id\n`
 
     db.query(sql, (err, res) => {
         if (err) throw err;
@@ -86,8 +84,7 @@ function viewRoles() {
 
 // shows id, first, last, title, dept, salary, manager/null
 function viewEmployees() {
-    console.log("Viewing employees\n");
-    const sql = `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name, CONCAT(manager.first_name, " ", manager.last_name) AS manager, role.title, role.salary, department.department_name AS department FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id LEFT JOIN employee manager on manager.id=employee.manager_id`
+    const sql = `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name, role.title, department.department_name AS department, role.salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id LEFT JOIN employee manager on manager.id=employee.manager_id\n`
 
     db.query(sql, (err, res) => {
         if (err) throw err;
@@ -115,14 +112,13 @@ function addDept() {
 }
 
 function addRole() {
-    console.log("Adding role\n");
     db.promise().query('SELECT * FROM department').then(([rows]) => {
         let departments = rows;
         const deptChoices = departments.map(({ id, department_name }) => ({
             name: department_name,
             value: id
         })
-    );
+        );
         inquirer.prompt([
             {
                 type: 'input',
@@ -130,13 +126,27 @@ function addRole() {
                 message: 'What is the name of the role?',
             },
             {
+                type: 'input',
+                name: 'role_salary',
+                message: 'What is the salary of the role?',
+            },
+            {
                 type: 'list',
                 name: 'dept_choices',
                 message: 'What department is this role located in?',
                 choices: deptChoices
             },
-        ]).then(answers => console.log(answers))
-    })}
+        ]).then(answers => {
+            const dbobject = { title: answers.role_title, salary: answers.role_salary, department_id: answers.dept_choices }
+            const sql = `INSERT INTO role SET ?`
+            db.query(sql, dbobject, (err, res) => {
+                if (err) throw err;
+
+            viewRoles();
+            })
+        })
+    });
+}
 
 function addEmployee() {
             console.log("Adding employee\n");
