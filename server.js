@@ -94,8 +94,8 @@ function viewEmployees() {
     });
 }
 
+// adds dept to database
 function addDept() {
-    console.log("Adding department\n");
     inquirer.prompt({
         type: 'input',
         name: 'dept_name',
@@ -111,6 +111,7 @@ function addDept() {
     })
 }
 
+// adds role to database with job title, salary, and the dept it belongs to
 function addRole() {
     db.promise().query('SELECT * FROM department').then(([rows]) => {
         let departments = rows;
@@ -142,16 +143,69 @@ function addRole() {
             db.query(sql, dbobject, (err, res) => {
                 if (err) throw err;
 
-            viewRoles();
+                viewRoles();
             })
         })
     });
 }
 
+// adds employee to database with first name, last name, role, manager 
 function addEmployee() {
-            console.log("Adding employee\n");
+    db.query("SELECT * FROM role", function (err, data) {
+        const roleChoices = []
+        if (err) throw err;
+        for (i = 0; i < data.length; i++) {
+            roleChoices.push(data[i].id + "-" + data[i].title)
         }
+        employeeInsert(roleChoices)
+    })
+}
+function employeeInsert(roleChoices) {
+    const managerChoices = []
+    db.query("SELECT * FROM employee", function (err, data) {
+        if (err) throw err;
+        for (i = 0; i < data.length; i++) {
+            managerChoices.push(data[i].id + "-" + data[i].first_name+" "+ data[i].last_name)
+        }
+        employeeNew(roleChoices, managerChoices);
+    })
+}
+function employeeNew(roleChoices, managerChoices) {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'employee_first',
+            message: 'What is the first name of the employee?',
+        },
+        {
+            type: 'input',
+            name: 'employee_last',
+            message: 'What is the last name of the employee?',
+        },
+        {
+            type: 'list',
+            name: 'employee_title',
+            message: 'What is the role of the employee?',
+            choices: roleChoices
+        },
+        {
+            type: 'list',
+            name: 'manager_choices',
+            message: 'What is the manager of the employee?',
+            choices: managerChoices
+        },
+    ]).then(answers => {
+        var getRoleId =answers.employee_title.split("-")
+        var getManagerId=answers.manager_choices.split("-")
+        const dbobject = { first_name: answers.employee_first, last_name: answers.employee_last, role_id: getRoleId[0], manager_id: getManagerId[0] }
+        const sql = `INSERT INTO employee SET ?`
+        db.query(sql, dbobject, (err, res) => {
+            if (err) throw err;
 
+            viewEmployees();
+        })
+    })
+}
 function updateEmpRole() {
-            console.log("Updating employee role\n");
-        }
+    console.log("Updating employee role\n");
+}
