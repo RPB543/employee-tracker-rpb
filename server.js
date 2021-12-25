@@ -1,8 +1,8 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
-const consoleTable = require('console.table');
 const db = require('./db/connection');
 const { printTable } = require('console-table-printer');
+const { restoreDefaultPrompts } = require('inquirer');
 
 // start sever after DB connection
 db.connect(function (err) {
@@ -149,7 +149,7 @@ function addRole() {
     });
 }
 
-// adds employee to database with first name, last name, role, manager 
+// retrieves role ID and name from role database
 function addEmployee() {
     db.query("SELECT * FROM role", function (err, data) {
         const roleChoices = []
@@ -160,16 +160,20 @@ function addEmployee() {
         employeeInsert(roleChoices)
     })
 }
+
+// retrieves manager ID and name from employee database
 function employeeInsert(roleChoices) {
     const managerChoices = []
     db.query("SELECT * FROM employee", function (err, data) {
         if (err) throw err;
         for (i = 0; i < data.length; i++) {
-            managerChoices.push(data[i].id + "-" + data[i].first_name+" "+ data[i].last_name)
+            managerChoices.push(data[i].id + "-" + data[i].first_name + " " + data[i].last_name)
         }
         employeeNew(roleChoices, managerChoices);
     })
 }
+
+// adds employee to database with first name, last name, role, manager
 function employeeNew(roleChoices, managerChoices) {
     inquirer.prompt([
         {
@@ -195,8 +199,8 @@ function employeeNew(roleChoices, managerChoices) {
             choices: managerChoices
         },
     ]).then(answers => {
-        var getRoleId =answers.employee_title.split("-")
-        var getManagerId=answers.manager_choices.split("-")
+        var getRoleId = answers.employee_title.split("-")
+        var getManagerId = answers.manager_choices.split("-")
         const dbobject = { first_name: answers.employee_first, last_name: answers.employee_last, role_id: getRoleId[0], manager_id: getManagerId[0] }
         const sql = `INSERT INTO employee SET ?`
         db.query(sql, dbobject, (err, res) => {
@@ -206,6 +210,54 @@ function employeeNew(roleChoices, managerChoices) {
         })
     })
 }
+
+// updates employee role by presenting all employees then lists the roles
 function updateEmpRole() {
-    console.log("Updating employee role\n");
+    const sql = `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee`
+
+    db.query(sql, (err, res) => {
+        if (err) throw err;
+
+        const employeeArr = res.map(({ id, name }) => ({
+            value: id, name: name
+        }));
+        roleArr(employeeArr);
+    });
+}
+
+function roleArr(employeeArr) {
+    const sql = `SELECT role.id, role.title FROM role`
+
+    db.query(sql, (err, res) => {
+        if (err) throw err;
+
+        const roleArr = res.map(({ id, title }) => ({
+            value: id, name: title
+        }));
+        updateEmployee(employeeArr, roleArr);
+    });
+}
+function updateEmployee(employeeArr, roleArr) {
+    inquirer.prompt([
+        {
+            type: "list",
+            name: "employee_name",
+            message: "Which employee's role would you like to update?",
+            choices: employeeArr
+        },
+        {
+            type: "list",
+            name: "role_name",
+            message: "What is the employee's new position?",
+            choices: roleArr
+        }
+    ]).then(function (answer) {
+        
+        const sql = `UPDATE employee SET role_id = ? WHERE id = ?`
+        db.query(sql, [ answer.role_name, answer.employee_name], (err, res) => {
+            if (err) throw err;
+
+            viewEmployees();
+    })
+})
 }
