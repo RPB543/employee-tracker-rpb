@@ -21,10 +21,11 @@ function promptUser() {
             'View All Roles',
             'View All Employees',
             'Add Department',
-            'Add Employee',
             'Add Role',
+            'Add Employee',
             'Update Employee Role',
             'Remove Department',
+            'Remove Role',
             'Remove Employee',
             'Quit',
         ]
@@ -55,6 +56,9 @@ function promptUser() {
                     break;
                 case 'Remove Department':
                     removeDept();
+                    break;
+                case 'Remove Role':
+                    removeRole();
                     break;
                 case 'Remove Employee':
                     removeEmployee();
@@ -324,7 +328,7 @@ function removeDept() {
 };
 
 // removes department
-function deleteDept(removeDeptChoices){
+function deleteDept(removeDeptChoices) {
     inquirer.prompt(
         {
             type: "list",
@@ -340,6 +344,42 @@ function deleteDept(removeDeptChoices){
                 if (err) throw err;
 
                 viewDepts();
+            })
+        })
+};
+
+// retreives roles for deletion
+function removeRole() {
+    const sql = `SELECT * FROM role`
+
+    db.query(sql, (err, res) => {
+        if (err) throw err;
+
+        const removeRoleChoices = res.map(({ id, title }) => ({
+            value: id, name: title
+        }));
+
+        deleteRole(removeRoleChoices);
+    });
+};
+
+// removes role
+function deleteRole(removeRoleChoices) {
+    inquirer.prompt(
+        {
+            type: "list",
+            name: "roles_id",
+            message: "Which department would you like to remove?",
+            choices: removeRoleChoices
+        }
+    )
+        .then(function (answer) {
+            const sql = `DELETE FROM role WHERE ?`
+
+            db.query(sql, { id: answer.roles_id }, (err, res) => {
+                if (err) throw err;
+
+                viewRoles();
             })
         })
 };
