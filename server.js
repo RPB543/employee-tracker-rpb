@@ -2,7 +2,6 @@ const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const db = require('./db/connection');
 const { printTable } = require('console-table-printer');
-const { restoreDefaultPrompts } = require('inquirer');
 
 // start sever after DB connection
 db.connect(function (err) {
@@ -25,6 +24,8 @@ function promptUser() {
             'Add Employee',
             'Add Role',
             'Update Employee Role',
+            'Remove Department',
+            'Remove Employee',
             'Quit',
         ]
     })
@@ -51,6 +52,12 @@ function promptUser() {
                     break;
                 case 'Update Employee Role':
                     updateEmpRole();
+                    break;
+                case 'Remove Department':
+                    removeDept();
+                    break;
+                case 'Remove Employee':
+                    removeEmployee();
                     break;
                 case "Quit":
                     db.end();
@@ -211,7 +218,7 @@ function employeeNew(roleChoices, managerChoices) {
     })
 }
 
-// updates employee role by presenting all employees then lists the roles
+// retrieves employee Array
 function updateEmpRole() {
     const sql = `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee`
 
@@ -225,6 +232,7 @@ function updateEmpRole() {
     });
 }
 
+// retrieves role Array
 function roleArr(employeeArr) {
     const sql = `SELECT role.id, role.title FROM role`
 
@@ -237,6 +245,8 @@ function roleArr(employeeArr) {
         updateEmployee(employeeArr, roleArr);
     });
 }
+
+// update employee role
 function updateEmployee(employeeArr, roleArr) {
     inquirer.prompt([
         {
@@ -252,12 +262,84 @@ function updateEmployee(employeeArr, roleArr) {
             choices: roleArr
         }
     ]).then(function (answer) {
-        
+
         const sql = `UPDATE employee SET role_id = ? WHERE id = ?`
-        db.query(sql, [ answer.role_name, answer.employee_name], (err, res) => {
+        db.query(sql, [answer.role_name, answer.employee_name], (err, res) => {
             if (err) throw err;
 
             viewEmployees();
+        })
     })
-})
 }
+
+// retrieves employees for deletion
+function removeEmployee() {
+    const sql = `SELECT * FROM employee`
+
+    db.query(sql, (err, res) => {
+        if (err) throw err;
+
+        const removeEmpChoices = res.map(({ id, first_name, last_name }) => ({
+            value: id, name: `${id} ${first_name} ${last_name}`
+        }));
+
+        deleteEmployee(removeEmpChoices);
+    });
+}
+
+// deletes employee
+function deleteEmployee(removeEmpChoices) {
+    inquirer.prompt(
+        {
+            type: "list",
+            name: "employee_id",
+            message: "Which employee would you like to remove?",
+            choices: removeEmpChoices
+        }
+    )
+        .then(function (answer) {
+            const sql = `DELETE FROM employee WHERE ?`
+
+            db.query(sql, { id: answer.employee_id }, (err, res) => {
+                if (err) throw err;
+
+                viewEmployees();
+            })
+        })
+}
+
+// retrieves depts for deletion
+function removeDept() {
+    const sql = `SELECT * FROM department`
+
+    db.query(sql, (err, res) => {
+        if (err) throw err;
+
+        const removeDeptChoices = res.map(({ id, department_name }) => ({
+            value: id, name: department_name
+        }));
+
+        deleteDept(removeDeptChoices);
+    });
+};
+
+// removes department
+function deleteDept(removeDeptChoices){
+    inquirer.prompt(
+        {
+            type: "list",
+            name: "dp_id",
+            message: "Which department would you like to remove?",
+            choices: removeDeptChoices
+        }
+    )
+        .then(function (answer) {
+            const sql = `DELETE FROM department WHERE ?`
+
+            db.query(sql, { id: answer.dp_id }, (err, res) => {
+                if (err) throw err;
+
+                viewDepts();
+            })
+        })
+};
