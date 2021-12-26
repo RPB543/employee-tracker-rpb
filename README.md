@@ -14,7 +14,7 @@ Build a command-line application from scratch to manage a company's employee dat
 * User can also update the job title for any employee
 * Bonus - delete department, role and employees
 
-## Built with:
+## Built with
 
 * Javascript
 * Node JS
@@ -26,12 +26,12 @@ Build a command-line application from scratch to manage a company's employee dat
 
 * Install npm modules and enter npm start to begin server.
 
-# Links:
+## Links
    
 🙈 [Link to Demonstration Video](https://watch.screencastify.com/v/4Cc1k1ZOcJAU2326erST)\
 🙉 [Repo](https://github.com/RPB543/employee-tracker-rpb)\
 🙊 [Github](https://github.com/RPB543)
 
-# Screenshot
+## Screenshot
 
 ![Screenshot](./Assets/screenshot.png)
